@@ -1,0 +1,70 @@
+name: Deploy Portfolio to AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate project files
+        run: |
+          test -f index.html
+          test -f Dockerfile
+          test -f styles.css
+          test -f script.js
+          echo "Project validation passed."
+
+      - name: Build Docker image
+        run: docker build -t joy-portfolio:ci .
+
+      - name: Deploy to EC2
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_KNOWN_HOSTS: ${{ secrets.EC2_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/joy_deploy
+          chmod 600 ~/.ssh/joy_deploy
+          printf '%s\n' "$EC2_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+          ssh -i ~/.ssh/joy_deploy \
+            -o StrictHostKeyChecking=yes \
+            -o BatchMode=yes \
+            "$EC2_USER@$EC2_HOST" 'bash -s' <<'REMOTE'
+          set -e
+          cd /home/ubuntu/joy-devops-portfolio
+          git fetch origin main
+          git reset --hard origin/main
+
+          sudo docker build -t joy-portfolio:latest .
+          sudo docker rm -f joy-portfolio-web || true
+          sudo docker run -d --restart unless-stopped \
+            --name joy-portfolio-web \
+            -p 80:80 \
+            joy-portfolio:latest
+
+          for attempt in {1..10}; do
+            if curl -fsS http://localhost/ >/dev/null; then
+              echo "Deployment successful. Website is responding."
+              exit 0
+            fi
+            sleep 3
+          done
+
+          echo "Health check failed."
+          exit 1
+          REMOTE
