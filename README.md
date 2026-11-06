@@ -1,50 +1,103 @@
 # Joy Akinleye — Cloud & DevOps Portfolio
 
-A responsive personal portfolio built with HTML, CSS and vanilla JavaScript.
+A responsive personal portfolio built with HTML, CSS and vanilla JavaScript, containerised with Docker and deployed to AWS EC2 using GitHub Actions CI/CD.
 
-## Project structure
+## Live Portfolio
+
+**Website:** http://13.51.194.212
+
+**GitHub:** https://github.com/Bbyjayyy/joy-devops-portfolio
+
+**LinkedIn:** https://www.linkedin.com/in/joy-akinleye
+
+## Project Structure
 
 ```text
 joy-devops-portfolio/
+├── .github/
+│   └── workflows/
+│       └── deploy.yml
+├── assets/
+│   └── Joy_Oluwafunmiso_Akinleye_DevOps_CV.pdf
+├── .dockerignore
+├── .gitignore
+├── Dockerfile
 ├── index.html
 ├── styles.css
 ├── script.js
-├── assets/
-│   └── Joy_Oluwafunmiso_Akinleye_DevOps_CV.pdf
 └── README.md
 ```
 
-## Add the CV PDF
+## Technologies Used
 
-Copy the public-safe CV PDF into the `assets/` folder and name it exactly:
+- HTML5
+- CSS3
+- JavaScript
+- Linux / Ubuntu
+- Git and GitHub
+- Docker
+- AWS EC2
+- GitHub Actions
+- Nginx
+- SSH
 
-`Joy_Oluwafunmiso_Akinleye_DevOps_CV.pdf`
+## Run Locally
 
-The CV link in `index.html` points to that path. If you choose a different filename, update the link too.
-
-## Run locally
-
-No build tools or package installation are required.
-
-From this directory, run:
+Clone the repository:
 
 ```bash
-python3 -m http.server 8000
+git clone https://github.com/Bbyjayyy/joy-devops-portfolio.git
+cd joy-devops-portfolio
 ```
 
-Then open `http://localhost:8000` in your browser. Stop the local server with `Ctrl+C`.
+Build the Docker image:
 
-You can also open `index.html` directly, but using a local HTTP server is a better test of links and browser behaviour.
+```bash
+docker build -t joy-portfolio:latest .
+```
 
-## Check before publishing
+Run the container:
 
-- Test the navigation on desktop and phone widths.
-- Open both GitHub and LinkedIn links.
-- Test the email link.
-- Add the CV PDF and test View / Download CV.
-- Check that all project descriptions reflect work you actually completed.
-- Do not add private keys, passwords, AWS credentials or `.env` files to this repository.
+```bash
+docker run -d -p 8080:80 --name joy-portfolio-web joy-portfolio:latest
+```
 
-## Current scope
+Open the website at:
 
-This is the first website milestone: homepage, About, Skills, Projects, experience, CV link and Contact. Docker, EC2 deployment and GitHub Actions CI/CD will be added in later stages.
+```text
+http://localhost:8080
+```
+
+## Deployment and CI/CD
+
+The portfolio is deployed to an AWS EC2 Ubuntu instance and served through an Nginx Docker container.
+
+GitHub Actions automates the deployment whenever changes are pushed to the `main` branch.
+
+The workflow performs the following steps:
+
+1. Checks out the repository.
+2. Validates the required project files.
+3. Builds the Docker image.
+4. Connects securely to the EC2 instance using GitHub repository secrets and SSH host-key verification.
+5. Pulls the latest code and rebuilds the Docker image on EC2.
+6. Replaces the running container with the updated version.
+7. Runs an HTTP health check to confirm that the website is responding.
+
+## Projects
+
+### 1. Linux Server Health Monitoring Script
+
+A Bash scripting project developed on Ubuntu to check basic server health information, including disk usage, memory usage and running processes.
+
+### 2. AWS Services Architecture Exercise
+
+A conceptual cloud architecture exercise exploring AWS services for compute, networking, storage, security, monitoring and CI/CD.
+
+## CV
+
+My downloadable CV is available on the portfolio website.
+
+## Project Status
+
+The portfolio is deployed and accessible through its public EC2 address. Docker containerisation and automated GitHub Actions deployment have been implemented.
